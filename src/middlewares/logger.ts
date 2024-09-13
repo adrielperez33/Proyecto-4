@@ -8,7 +8,7 @@ export function loggerGlobal(
 ) {
   const now = new Date();
   const formattedDate = format(now, 'yyyy-MM-dd / HH:mm');
-  const logMessage = `Hora: [${formattedDate}] Metodo: ${req.method} Ruta: ${req.originalUrl} prueba de cambios`;
+  const logMessage = `Hora: [${formattedDate}] Metodo: ${req.method} Ruta: ${req.originalUrl}`;
   console.log(logMessage);
   next();
 }

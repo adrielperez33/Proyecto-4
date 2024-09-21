@@ -32,25 +32,25 @@ export class AuthController {
     } 
 
     // Buscar al usuario por email
-    const user = await this.usersRepository.getUserByEmail(email);
+    // const user = await this.usersRepository.getUserByEmail(email);
 
     // Si el usuario no existe, retornar un error
-    if (!user) {
-      throw new HttpException(
-        'Email o password incorrectos',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    // if (!user) {
+    //   throw new HttpException(
+    //     'Email o password incorrectos',
+    //     HttpStatus.NOT_FOUND,
+    //   );
+    // }
 
     // Verificar la contraseña (esto normalmente debería hacerse con hashing)
-    if (user.password !== password) {
-      throw new HttpException(
-        'Email o password incorrectos',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
+    // if (user.password !== password) {
+    //   throw new HttpException(
+    //     'Email o password incorrectos',
+    //     HttpStatus.UNAUTHORIZED,
+    //   );
+    // }
 
     // Si el email y la contraseña son válidos, retornar el usuario sin la contraseña
-    return this.usersRepository.omitPassword(user);
+    // return this.usersRepository.omitPassword(user);
   }
 }

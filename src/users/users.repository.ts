@@ -1,35 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './users.entity';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class UsersRepository {
   private users: User[] = [
     {
-      id: 1,
+      id: uuid(),
       email: 'john.doe@example.com',
       name: 'John Doe',
       password: 'password123',
       address: '123 Main St',
-      phone: '123-456-7890',
+      phone: 1234567890,
       country: 'USA',
       city: 'New York',
+      orders: []
     },
     {
-      id: 2,
+      id: uuid(),
       email: 'jane.smith@example.com',
       name: 'Jane Smith',
       password: 'password456',
       address: '456 Elm St',
-      phone: '987-654-3210',
+      phone: 9876543210,
       country: 'Canada',
       city: 'Toronto',
+      orders: []
     },
   ];
+
   omitPassword(user: User): Omit<User, 'password'> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
   async getUsers({
     page,
     limit,
@@ -44,21 +48,24 @@ export class UsersRepository {
       .map((user) => this.omitPassword(user));
   }
 
-  async getUsersId(id: number): Promise<Omit<User, 'password'>> {
+  async getUsersId(id: string): Promise<Omit<User, 'password'>> {
     const user = this.users.find((user) => user.id === id);
+    if (!user) {
+      throw new Error('User not found');
+    }
     return this.omitPassword(user);
   }
 
-  async createUsers(user: Omit<User, 'id'>): Promise<number> {
-    const id = this.users.length + 1;
+  async createUsers(user: Omit<User, 'id'>): Promise<string> {
+    const id = uuid();
     this.users = [...this.users, { id, ...user }];
     return id;
   }
 
   async putUsers(
-    id: number,
+    id: string,
     product: Partial<User>,
-  ): Promise<number | undefined> {
+  ): Promise<string | undefined> {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex === -1) {
       return undefined;
@@ -68,12 +75,12 @@ export class UsersRepository {
     return id;
   }
 
-  async deleteUsers(id: number): Promise<number> {
-    const productIndex = this.users.findIndex((user) => user.id === id);
-    if (productIndex === -1) {
-      throw new Error('Producto no encontrado');
+  async deleteUsers(id: string): Promise<string> {
+    const userIndex = this.users.findIndex((user) => user.id === id);
+    if (userIndex === -1) {
+      throw new Error('User not found');
     }
-    this.users.splice(productIndex, 1);
+    this.users.splice(userIndex, 1);
     return id;
   }
 

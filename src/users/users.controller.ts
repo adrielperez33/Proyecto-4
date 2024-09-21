@@ -16,26 +16,30 @@ import { AuthGuard } from 'src/auth/auth.guards';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersServis: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @HttpCode(200)
   @Get()
   @UseGuards(AuthGuard)
   getUsers(@Query('page') page: number = 1, @Query('limit') limit: number = 5) {
-    return this.usersServis.getUsers({ page, limit });
+    return this.usersService.getUsers({ page, limit });
   }
 
   @HttpCode(200)
   @Get(':id')
   @UseGuards(AuthGuard)
-  getUserId(@Param('id') id: string) {
-    return this.usersServis.getUserId(Number(id));
+  getUserId(
+    @Param('id') id: string,
+  ): Promise<
+    Omit<User, 'password'> & { orders: { id: string; date: string }[] }
+  > {
+    return this.usersService.getUserId(id);
   }
 
   @HttpCode(201)
   @Post()
-  createUser(@Body() user: User): Promise<number> {
-    return this.usersServis.createUser(user);
+  createUser(@Body() user: Omit<User, 'id'>): Promise<string> {
+    return this.usersService.createUser(user);
   }
 
   @HttpCode(200)
@@ -44,14 +48,14 @@ export class UsersController {
   putUser(
     @Body() user: Partial<User>,
     @Param('id') id: string,
-  ): Promise<number> {
-    return this.usersServis.putUser(Number(id), user);
+  ): Promise<string | undefined> {
+    return this.usersService.putUser(id, user);
   }
 
   @HttpCode(200)
   @Delete(':id')
   @UseGuards(AuthGuard)
-  deleteUser(@Param('id') id: string): Promise<number> {
-    return this.usersServis.deleteUser(Number(id));
+  deleteUser(@Param('id') id: string): Promise<string> {
+    return this.usersService.deleteUser(id);
   }
 }

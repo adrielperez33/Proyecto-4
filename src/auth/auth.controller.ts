@@ -7,7 +7,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInDto } from './auth.dto';
+import { LoginUserDto } from './auth.dto';
 import { UsersRepository } from 'src/users/users.repository';
 
 @Controller('auth')
@@ -16,41 +16,44 @@ export class AuthController {
     private readonly authServices: AuthService,
     private readonly usersRepository: UsersRepository,
   ) {}
+
   @Get()
   getAuth() {
     return this.authServices.getAuth();
   }
 
   @Post('signin')
-  async postAuth(@Body() { email, password }: SignInDto) {
+  async postAuth(@Body() loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto;
+
     // Verificar si los campos de email y password fueron proporcionados
     if (!email || !password) {
       throw new HttpException(
         'Completa todos los campos',
         HttpStatus.BAD_REQUEST,
       );
-    } 
+    }
 
     // Buscar al usuario por email
-    // const user = await this.usersRepository.getUserByEmail(email);
+    const user = await this.usersRepository.getUserByEmail(email);
 
     // Si el usuario no existe, retornar un error
-    // if (!user) {
-    //   throw new HttpException(
-    //     'Email o password incorrectos',
-    //     HttpStatus.NOT_FOUND,
-    //   );
-    // }
+    if (!user) {
+      throw new HttpException(
+        'Email o password incorrectos',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     // Verificar la contraseña (esto normalmente debería hacerse con hashing)
-    // if (user.password !== password) {
-    //   throw new HttpException(
-    //     'Email o password incorrectos',
-    //     HttpStatus.UNAUTHORIZED,
-    //   );
-    // }
+    if (user.password !== password) {
+      throw new HttpException(
+        'Email o password incorrectos',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
 
     // Si el email y la contraseña son válidos, retornar el usuario sin la contraseña
-    // return this.usersRepository.omitPassword(user);
+    return this.usersRepository.omitPassword(user);
   }
 }

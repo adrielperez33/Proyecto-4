@@ -13,6 +13,7 @@ import {
 import { UsersService } from './users.service';
 import { User } from './users.entity';
 import { AuthGuard } from 'src/auth/auth.guards';
+import { CreateUserDto } from './dtos/user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -38,7 +39,7 @@ export class UsersController {
 
   @HttpCode(201)
   @Post()
-  createUser(@Body() user: Omit<User, 'id'>): Promise<string> {
+  createUser(@Body() user: CreateUserDto): Promise<string> {
     return this.usersService.createUser(user);
   }
 
@@ -46,7 +47,7 @@ export class UsersController {
   @Put(':id')
   @UseGuards(AuthGuard)
   putUser(
-    @Body() user: Partial<User>,
+    @Body() user: Partial<CreateUserDto>,
     @Param('id') id: string,
   ): Promise<string | undefined> {
     return this.usersService.putUser(id, user);

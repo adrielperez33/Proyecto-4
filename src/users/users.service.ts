@@ -4,6 +4,7 @@ import { User } from './users.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { v4 as uuid } from 'uuid';
+import { CreateUserDto } from './dtos/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -50,7 +51,7 @@ export class UsersService {
     return userWithOrders;
   }
 
-  async createUser(user: Omit<User, 'id'>): Promise<string> {
+  async createUser(user: CreateUserDto): Promise<string> {
     const newUser = this.userRepository.create({
       id: uuid(),
       ...user,
@@ -59,7 +60,10 @@ export class UsersService {
     return newUser.id;
   }
 
-  async putUser(id: string, user: Partial<User>): Promise<string | undefined> {
+  async putUser(
+    id: string,
+    user: Partial<CreateUserDto>,
+  ): Promise<string | undefined> {
     await this.userRepository.update(id, user);
     const updatedUser = await this.userRepository.findOne({ where: { id } });
     return updatedUser ? updatedUser.id : undefined;

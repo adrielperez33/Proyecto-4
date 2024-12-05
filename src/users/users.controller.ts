@@ -1,12 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { User } from 'src/entities/Users.entitiy';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @Get()
-  getUsers(): string {
-    return 'Estas en el get de users';
+  getUsers(): User[] {
+    return this.userService.getUsers();
   }
 }

@@ -21,7 +21,43 @@ export class ProductsRepository {
       imgUrl: 'https://example.com/product2.jpg',
     },
   ];
-  getProducts(): Products[] {
-    return this.products;
+
+  async getProducts(page: number, limit: number): Promise<Products[]> {
+    const offset = (page - 1) * limit;
+    return this.products.slice(offset, offset + limit);
+  }
+
+  getProductsId(id: number): Products | undefined {
+    return this.products.find((product) => product.id === id);
+  }
+
+  postProducts(product: Omit<Products, 'id'>): number {
+    const newProduct = {
+      id: this.products.length + 1,
+      ...product,
+    };
+    this.products.push(newProduct);
+    return newProduct.id;
+  }
+
+  putProducts(
+    id: number,
+    products: Partial<Omit<Products, 'id' | 'password'>>,
+  ): number | undefined {
+    const index = this.products.findIndex((product) => product.id === id);
+    if (index !== -1) {
+      this.products[index] = { ...this.products[index], ...products };
+      return id;
+    }
+    return undefined;
+  }
+
+  deleteProducts(id: number) {
+    const index = this.products.findIndex((product) => product.id === id);
+    if (index !== -1) {
+      this.products.splice(index, 1);
+      return id;
+    }
+    return undefined;
   }
 }

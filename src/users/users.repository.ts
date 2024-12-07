@@ -23,7 +23,53 @@ export class UsersRepository {
       phone: '555-5678',
     },
   ];
-  getUsers(): User[] {
-    return this.Users;
+
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.Users.find((user) => user.email === email);
+  }
+
+  getUsers(page: number, limit: number): User[] {
+    const offset = (page - 1) * limit;
+    return this.Users.slice(offset, offset + limit);
+  }
+
+  getUsersId(id: number): Partial<User> | undefined {
+    const user = this.Users.find((user) => user.id === id);
+
+    if (user) {
+      const { password, ...partialUser } = user;
+      return partialUser;
+    }
+    return undefined;
+  }
+
+  postUser(user: Omit<User, 'id'>): number {
+    const newUser = {
+      id: this.Users.length + 1,
+      ...user,
+    };
+    this.Users.push(newUser);
+    return newUser.id;
+  }
+
+  putUser(
+    id: number,
+    user: Partial<Omit<User, 'id' | 'password'>>,
+  ): number | undefined {
+    const index = this.Users.findIndex((user) => user.id === id);
+    if (index !== -1) {
+      this.Users[index] = { ...this.Users[index], ...user };
+      return id;
+    }
+    return undefined;
+  }
+
+  deleteUser(id: number): number | undefined {
+    const index = this.Users.findIndex((user) => user.id === id);
+    if (index !== -1) {
+      this.Users.splice(index, 1);
+      return id;
+    }
+    return undefined;
   }
 }

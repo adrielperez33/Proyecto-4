@@ -1,22 +1,38 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Category } from './Categories.entity';
+import { OrderDetail } from './OrderDetail.entity';
 
 @Entity()
-export class Products {
-  @Column()
-  id: number;
+export class Product {
+  @PrimaryGeneratedColumn('uuid')
+  id: string; // UUID como clave primaria
 
-  @Column()
+  @Column({ length: 50 })
   name: string;
 
-  @Column()
+  @Column('text')
   description: string;
 
-  @Column()
+  @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column()
-  stock: boolean;
+  @Column('int')
+  stock: number;
 
-  @Column()
+  @Column({ length: 255, default: 'default-image.jpg' })
   imgUrl: string;
+
+  @ManyToOne(() => Category, (category) => category.products)
+  category: Category; // Relación 1:N con Category
+
+  @ManyToMany(() => OrderDetail, (orderDetail) => orderDetail.product)
+  @JoinTable()
+  orderDetails: OrderDetail[]; // Relación N:N con OrderDetails
 }

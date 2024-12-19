@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { User } from 'src/entities/Users.entitiy';
+import { v4 as uuidv4 } from 'uuid';
+import { User } from '../entities/Users.entitiy';
+import { Order } from '../entities/Orders.entitiy';
 
 @Injectable()
 export class UsersRepository {
   private Users: User[] = [
     {
-      id: 1,
-      email: 'john.doe@example.com',
+      id: uuidv4(),
       name: 'John Doe',
+      email: 'john.doe@example.com',
       password: 'securepassword123',
-      address: '123 Main St',
-      phone: '555-1234',
+      phone: 5551234,
       country: 'USA',
+      address: '123 Main St',
       city: 'New York',
+      orders: [
+        { id: '101', date: '2024-01-01' },
+        { id: '102', date: '2024-02-01' },
+      ] as Order[],
     },
     {
-      id: 2,
-      email: 'jane.smith@example.com',
+      id: uuidv4(),
       name: 'Jane Smith',
+      email: 'jane.smith@example.com',
       password: 'password321',
+      phone: 5555678,
+      country: 'USA',
       address: '456 Elm St',
-      phone: '555-5678',
+      city: 'Los Angeles',
+      orders: [{ id: '103', date: '2024-03-01' }] as Order[],
     },
   ];
 
@@ -33,9 +42,8 @@ export class UsersRepository {
     return this.Users.slice(offset, offset + limit);
   }
 
-  getUsersId(id: number): Partial<User> | undefined {
+  getUsersId(id: string): Partial<User> | undefined {
     const user = this.Users.find((user) => user.id === id);
-
     if (user) {
       const { password, ...partialUser } = user;
       return partialUser;
@@ -43,9 +51,9 @@ export class UsersRepository {
     return undefined;
   }
 
-  postUser(user: Omit<User, 'id'>): number {
-    const newUser = {
-      id: this.Users.length + 1,
+  postUser(user: Omit<User, 'id'>): string {
+    const newUser: User = {
+      id: uuidv4(),
       ...user,
     };
     this.Users.push(newUser);
@@ -53,9 +61,9 @@ export class UsersRepository {
   }
 
   putUser(
-    id: number,
+    id: string,
     user: Partial<Omit<User, 'id' | 'password'>>,
-  ): number | undefined {
+  ): string | undefined {
     const index = this.Users.findIndex((user) => user.id === id);
     if (index !== -1) {
       this.Users[index] = { ...this.Users[index], ...user };
@@ -64,7 +72,7 @@ export class UsersRepository {
     return undefined;
   }
 
-  deleteUser(id: number): number | undefined {
+  deleteUser(id: string): string | undefined {
     const index = this.Users.findIndex((user) => user.id === id);
     if (index !== -1) {
       this.Users.splice(index, 1);

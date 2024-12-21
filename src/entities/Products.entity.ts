@@ -9,10 +9,10 @@ import {
 import { Category } from './Categories.entity';
 import { OrderDetail } from './OrderDetail.entity';
 
-@Entity()
+@Entity('products')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
-  id: string; // UUID como clave primaria
+  id: string;
 
   @Column({ length: 50 })
   name: string;
@@ -29,10 +29,9 @@ export class Product {
   @Column({ length: 255, default: 'default-image.jpg' })
   imgUrl: string;
 
-  @ManyToOne(() => Category, (category) => category.products)
-  category: Category; // Relación 1:N con Category
+  @ManyToOne(() => Category, (category) => category.products, { eager: true })
+  category: Category;
 
-  @ManyToMany(() => OrderDetail, (orderDetail) => orderDetail.product)
-  @JoinTable()
-  orderDetails: OrderDetail[]; // Relación N:N con OrderDetails
+  @ManyToMany(() => OrderDetail, (orderDetail) => orderDetail.products)
+  orderDetails: OrderDetail[];
 }

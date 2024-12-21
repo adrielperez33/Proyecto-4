@@ -1,20 +1,20 @@
-// import { Injectable } from '@nestjs/common';
-// import { User } from 'src/entities/Users.entitiy';
-// import { UsersRepository } from 'src/users/users.repository';
+import { Injectable } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
+import { User } from '../entities/Users.entitiy';
 
-// @Injectable()
-// export class AuthService {
-//   constructor(private readonly userRepository: UsersRepository) {}
+@Injectable()
+export class AuthService {
+  constructor(private readonly usersService: UsersService) {}
 
-//   async validateUser(email: string, password: string): Promise<User> | null {
-//     const user = await this.userRepository.findByEmail(email);
-//     if (user && user.password === password) {
-//       return user;
-//     }
-//     return null;
-//   }
+  // Método de sign-in sin JWT, solo devolviendo el usuario completo
+  async signIn(email: string, password: string): Promise<User | undefined> {
+    const user = await this.usersService.findOneByEmail(email); // Buscar al usuario por email
 
-//   login(user: User) {
-//     return { message: 'acceso permitido, bienvenido', user };
-//   }
-// }
+    // Verificar si existe el usuario y si la contraseña coincide
+    if (!user || user.password !== password) {
+      throw new Error('Invalid credentials');
+    }
+
+    return user; // Devuelve el usuario completo
+  }
+}

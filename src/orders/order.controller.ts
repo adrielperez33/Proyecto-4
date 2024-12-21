@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UsePipes } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './order.dto';
+import { UUIDValidationPipe } from '../pipes/uuid-validation.pipe'; // Asegúrate de que esta ruta sea correcta
 
 @Controller('orders')
 export class OrderController {
@@ -13,6 +14,7 @@ export class OrderController {
   }
 
   @Get(':id')
+  @UsePipes(UUIDValidationPipe) // Validación del formato UUID
   async getOrder(@Param('id') id: string) {
     return this.orderService.getOrder(id);
   }

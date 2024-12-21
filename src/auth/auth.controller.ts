@@ -1,28 +1,17 @@
-// import { Body, Controller, Get, Post } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-// import { Auth } from 'src/entities/Auth.entity';
+import { Controller, Post, Body } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { User } from '../entities/Users.entitiy';
 
-// @Controller('auth')
-// export class AuthController {
-//   constructor(private readonly authService: AuthService) {}
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
 
-//   @Get()
-//   getAuth(): string {
-//     return 'estas en el get de auth';
-//   }
-
-//   @Post('signin')
-//   async autenticacion(@Body() auth: Auth) {
-//     const { email, password } = auth;
-
-//     if (!email || !password) {
-//       return 'falta el email o el password';
-//     }
-
-//     const user = await this.authService.validateUser(email, password);
-//     if (!user) {
-//       return 'Email o password incorrectos';
-//     }
-//     return this.authService.login(user)
-//   }
-// }
+  @Post('signin')
+  async signIn(
+    @Body() signInDto: { email: string; password: string },
+  ): Promise<User> {
+    const { email, password } = signInDto;
+    const result = await this.authService.signIn(email, password);
+    return result; // Retorna el usuario completo
+  }
+}

@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Product } from './Products.entity';
+import { Product } from './Products.entity'; 
 
 @Entity()
 export class Category {
   @PrimaryGeneratedColumn('uuid')
-  id: string; // UUID como clave primaria
+  id: string;
 
-  @Column({ length: 50 })
+  @Column({ type: 'varchar', length: 50 })
   name: string;
 
   @OneToMany(() => Product, (product) => product.category)
-  products: Product[]; // Relación 1:N con Products
+  products: Product[];
 }

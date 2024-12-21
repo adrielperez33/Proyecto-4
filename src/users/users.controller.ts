@@ -15,6 +15,8 @@ import {
 import { UsersService } from './users.service';
 import { User } from '../entities/Users.entitiy';
 import { AuthGuard } from '../auth/AuthGuard';
+import { CreateUserDto } from './CreateUserDto';
+import { UUIDValidationPipe } from '../pipes/uuid-validation.pipe'; // Importamos el Pipe
 
 @Controller('users')
 export class UsersController {
@@ -35,16 +37,19 @@ export class UsersController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Get(':id')
-  async getUserId(@Param('id') id: string): Promise<Partial<User> | undefined> {
+  async getUserId(
+    @Param('id', UUIDValidationPipe) id: string,
+  ): Promise<Partial<User> | undefined> {
+    // Aquí se aplica el Pipe
     const user = await this.userService.getUsersId(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
-    // Mapeamos las órdenes pero conservamos la estructura completa de 'orderDetail'
+    // Mapeamos las órdenes pero conservamos la estructura completa de 'orderDetails'
     const orders = user.orders.map((order) => ({
       ...order, // Devolvemos la orden completa
-      orderDetails: order.orderDetails ? order.orderDetails : null, // Mantenemos el objeto completo de 'orderDetails'
+      orderDetails: order.orderDetails ? order.orderDetails : null, // Ahora 'orderDetails' es la propiedad correcta
     }));
 
     // Devolvemos el usuario con las órdenes completas
@@ -53,7 +58,7 @@ export class UsersController {
 
   @HttpCode(201)
   @Post()
-  async postUser(@Body() user: Omit<User, 'id'>): Promise<{ id: string }> {
+  async postUser(@Body() user: CreateUserDto): Promise<{ id: string }> {
     const newUserId = await this.userService.postUser(user);
     return { id: newUserId };
   }
@@ -62,8 +67,8 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Put(':id')
   async putUser(
-    @Param('id') id: string,
-    @Body() user: Partial<Omit<User, 'id' | 'password'>>,
+    @Param('id', UUIDValidationPipe) id: string, // Aplicamos el Pipe también en PUT
+    @Body() user: Partial<CreateUserDto>, // Usamos Partial<CreateUserDto> para permitir actualizar solo algunos campos
   ): Promise<{ id: string }> {
     const updatedId = await this.userService.putUser(id, user);
     if (!updatedId) {
@@ -75,7 +80,10 @@ export class UsersController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string): Promise<{ id: string }> {
+  async deleteUser(
+    @Param('id', UUIDValidationPipe) id: string,
+  ): Promise<{ id: string }> {
+    // Aplicamos el Pipe en DELETE
     const deletedId = await this.userService.deleteUser(id);
     if (!deletedId) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);

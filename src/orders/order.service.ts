@@ -1,91 +1,128 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateOrderDto } from './order.dto';
+import { DataSource, Repository } from 'typeorm';
 import { Order } from '../entities/Orders.entitiy';
-import { User } from '../entities/Users.entitiy';
-import { Product } from '../entities/Products.entity';
 import { OrderDetail } from '../entities/OrderDetail.entity';
+import { Product } from '../entities/Products.entity';
+import { User } from '../entities/Users.entitiy';
+import { CreateOrderDto } from './order.dto';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
+
     @InjectRepository(OrderDetail)
     private readonly orderDetailRepository: Repository<OrderDetail>,
+
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async addOrder(createOrderDto: CreateOrderDto): Promise<Order> {
-    console.log('Service: addOrder called with:', createOrderDto);
     const { userId, products } = createOrderDto;
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const productEntities = await this.productRepository.findByIds(
-      products.map((p) => p.id),
-    );
-    if (productEntities.length !== products.length) {
-      throw new NotFoundException('Uno o más productos no encontrados');
-    }
-
-    let total = 0;
-    const orderDetails = [];
-    for (const product of productEntities) {
-      if (product.stock <= 0) {
-        throw new NotFoundException(`Producto ${product.name} no tiene stock`);
+    try {
+      // Verificar existencia del usuario
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
       }
 
-      const price =
-        typeof product.price === 'string'
-          ? parseFloat(product.price)
-          : product.price;
-      if (isNaN(price)) {
-        throw new Error(`El precio del producto ${product.name} no es válido`);
+      // Verificar productos
+      const productEntities = await this.productRepository.findByIds(
+        products.map((p) => p.id),
+      );
+
+      if (productEntities.length !== products.length) {
+        throw new NotFoundException('Uno o más productos no encontrados');
       }
 
-      total += price;
+      // Validar stock y calcular total
+      let total = 0;
+      const orderDetails: OrderDetail[] = [];
 
-      const orderDetail = this.orderDetailRepository.create({
-        price: price,
-        product: product,
+      for (const product of productEntities) {
+        if (product.stock <= 0) {
+          throw new NotFoundException(
+            `Producto ${product.name} sin stock disponible`,
+          );
+        }
+
+        total += parseFloat(product.price.toString());
+
+        // Crear OrderDetail y asignar producto
+        const orderDetail = this.orderDetailRepository.create({
+          price: parseFloat(product.price.toString()),
+          products: [product],
+        });
+
+        orderDetails.push(orderDetail);
+      }
+
+      total = parseFloat(total.toFixed(2));
+
+      // Crear y guardar la orden
+      const order = this.orderRepository.create({
+        user: user,
+        total,
+        date: new Date().toISOString(), // Asegúrate de que no sea null
+        orderDetails,
       });
-      orderDetails.push(orderDetail);
+
+      console.log('Fecha de la orden:', order.date); // Verifica que la fecha esté bien asignada
+
+      await queryRunner.manager.save(order);
+
+      // Reducir stock de los productos
+      for (const product of productEntities) {
+        product.stock -= 1;
+        await queryRunner.manager.save(product);
+      }
+
+      await queryRunner.commitTransaction();
+
+      return this.orderRepository.findOne({
+        where: { id: order.id },
+        relations: ['user', 'orderDetails', 'orderDetails.products'],
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    total = parseFloat(total.toFixed(2));
-
-    // Crear la orden
-    const order = this.orderRepository.create({
-      user,
-      date: new Date().toISOString(),
-      orderDetails: orderDetails, // Asociar detalles de la orden
-    });
-    await this.orderRepository.save(order);
-
-    for (const product of productEntities) {
-      product.stock -= 1;
-      await this.productRepository.save(product);
-    }
-
-    return order;
   }
 
   async getOrder(orderId: string): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['orderDetails', 'orderDetails.product'],
+      relations: ['orderDetails', 'orderDetails.products', 'user'], // Asegúrate de cargar 'user' también
     });
+
     if (!order) {
       throw new NotFoundException('Orden no encontrada');
     }
-    return order;
+
+    // Crear un objeto con el orden que deseas
+    const orderedOrder = {
+      id: order.id,
+      total: order.total,
+      date: order.date,
+      user: order.user, // 'user' primero
+      orderDetails: order.orderDetails, // Luego 'orderDetails'
+    };
+
+    return orderedOrder;
   }
 }

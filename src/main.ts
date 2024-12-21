@@ -17,7 +17,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      errorHttpStatusCode: 422, // Unprocessable Entity
+      errorHttpStatusCode: 422, 
       exceptionFactory: (errors) => {
         const errorMessages = errors.map((error) => ({
           field: error.property,

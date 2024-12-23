@@ -8,6 +8,7 @@ import { DatabaseModule } from './database.module';
 import { CategoryModule } from './category/category.module';
 import { ConfigModule } from '@nestjs/config';
 import { OrderModule } from './orders/order.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { OrderModule } from './orders/order.module';
     AuthModule,
     OrderModule,
     CategoryModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

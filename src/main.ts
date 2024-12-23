@@ -6,6 +6,17 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   dotenv.config();
+  console.log('Variables de entorno cargadas:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    db_host: process.env.DB_HOST,
+    db_port: process.env.DB_PORT,
+    db_username: process.env.DB_USERNAME,
+    db_password: process.env.DB_PASSWORD,
+    db_database: process.env.DB_DATABASE,
+    port: process.env.PORT,
+  });
   const app = await NestFactory.create(AppModule);
 
   // Usar middleware para el logger
@@ -17,7 +28,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      errorHttpStatusCode: 422, 
+      errorHttpStatusCode: 422,
       exceptionFactory: (errors) => {
         const errorMessages = errors.map((error) => ({
           field: error.property,

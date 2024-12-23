@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../entities/Products.entity';
@@ -34,5 +34,13 @@ export class ProductService {
   }
   async getProducts(): Promise<Product[]> {
     return this.productRepository.find({ relations: ['category'] });
+  }
+  async updateProductImage(id: string, imageUrl: string): Promise<Product> {
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException('El producto no existe o está mal');
+    }
+    product.imgUrl = imageUrl;
+    return this.productRepository.save(product);
   }
 }

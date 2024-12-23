@@ -5,7 +5,7 @@ import { isUUID } from 'class-validator'; // Validar si es un UUID
 export class UUIDValidationPipe implements PipeTransform {
   transform(value: any) {
     if (!isUUID(value)) {
-      throw new BadRequestException('Invalid UUID format');
+      throw new BadRequestException('Formato de UUID inválido');
     }
     return value;
   }

@@ -4,20 +4,23 @@ import {
   Param,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
-import { ProductService } from '../products/productsDb. services'; // Asegúrate de que el nombre coincide con el que exportas
+import { ProductService } from '../products/productsDb. services'; // Cambia la importación según sea necesario
+import { AuthGuard } from 'src/auth/AuthGuard';
 
 @Controller('cloudinary')
 export class CloudinaryController {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
-    private readonly productService: ProductService, // Cambia el nombre aquí también
+    private readonly productService: ProductService,
   ) {}
 
   @Post('uploadImage/:id')
+  @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Param('id') id: string,

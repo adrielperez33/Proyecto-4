@@ -40,35 +40,32 @@ export class UsersController {
   async getUserId(
     @Param('id', UUIDValidationPipe) id: string,
   ): Promise<Partial<User> | undefined> {
-    // Aquí se aplica el Pipe
     const user = await this.userService.getUsersId(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
-    // Mapeamos las órdenes pero conservamos la estructura completa de 'orderDetails'
     const orders = user.orders.map((order) => ({
-      ...order, // Devolvemos la orden completa
-      orderDetails: order.orderDetails ? order.orderDetails : null, // Ahora 'orderDetails' es la propiedad correcta
+      ...order,
+      orderDetails: order.orderDetails ? order.orderDetails : null,
     }));
 
-    // Devolvemos el usuario con las órdenes completas
     return { ...user, orders };
   }
 
-  @HttpCode(201)
-  @Post()
-  async postUser(@Body() user: CreateUserDto): Promise<{ id: string }> {
-    const newUserId = await this.userService.postUser(user);
-    return { id: newUserId };
-  }
+  // @HttpCode(201)
+  // @Post()
+  // async postUser(@Body() user: CreateUserDto): Promise<{ id: string }> {
+  //   const newUserId = await this.userService.postUser(user);
+  //   return { id: newUserId };
+  // }
 
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Put(':id')
   async putUser(
-    @Param('id', UUIDValidationPipe) id: string, // Aplicamos el Pipe también en PUT
-    @Body() user: Partial<CreateUserDto>, // Usamos Partial<CreateUserDto> para permitir actualizar solo algunos campos
+    @Param('id', UUIDValidationPipe) id: string,
+    @Body() user: Partial<CreateUserDto>,
   ): Promise<{ id: string }> {
     const updatedId = await this.userService.putUser(id, user);
     if (!updatedId) {
@@ -83,11 +80,10 @@ export class UsersController {
   async deleteUser(
     @Param('id', UUIDValidationPipe) id: string,
   ): Promise<{ id: string }> {
-    // Aplicamos el Pipe en DELETE
     const deletedId = await this.userService.deleteUser(id);
     if (!deletedId) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    return { id: deletedId };
+    return { id: deletedId }; // Retornamos un objeto con el ID del usuario eliminado
   }
 }

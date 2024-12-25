@@ -1,20 +1,77 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { CreateUserDto } from '../users/CreateUserDto';
+import * as bcrypt from 'bcrypt';
 import { User } from '../entities/Users.entitiy';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  // Método de sign-in sin JWT, solo devolviendo el usuario completo
-  async signIn(email: string, password: string): Promise<User | undefined> {
-    const user = await this.usersService.findOneByEmail(email); // Buscar al usuario por email
+  async signUp(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+    // Llamamos al servicio para crear el usuario
+    const user = await this.usersService.createUser(createUserDto);
 
-    // Verificar si existe el usuario y si la contraseña coincide
-    if (!user || user.password !== password) {
-      throw new Error('Invalid credentials');
+    // Elimina la propiedad password solo cuando no se desea retornar al cliente
+    const { password, ...userWithoutPassword } = user;
+
+    // Retorna el usuario sin la contraseña
+    return userWithoutPassword;
+  }
+
+  async signIn(
+    email: string,
+    password: string,
+  ): Promise<{ accessToken: string }> {
+    try {
+      // Buscar al usuario por su email
+      const user = await this.usersService.findByEmail(email);
+
+      // Si no existe el usuario, lanzamos un error
+      if (!user) {
+        throw new UnauthorizedException('El usuario no existe');
+      }
+
+      // Verificar si la contraseña ingresada coincide con la almacenada
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      // Si la contraseña no coincide, lanzamos un error
+      if (!passwordMatch) {
+        throw new UnauthorizedException('La contraseña es incorrecta');
+      }
+
+      // Crear el payload para el JWT
+      const payload = { username: user.email.split('@')[0], sub: user.id };
+
+      // Firmar el token
+      const accessToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      return { accessToken };
+    } catch (error) {
+      // Registrar el error para debugging
+      console.error('Error during user sign in:', error);
+
+      // Lanzar una excepción adecuada para los errores internos
+      if (error instanceof UnauthorizedException) {
+        throw error; // Si es UnauthorizedException, lo lanzamos directamente
+      }
+
+      // Para otros errores internos, lanzamos InternalServerErrorException
+      throw new InternalServerErrorException(
+        'Ocurrió un error durante el inicio de sesión',
+      );
     }
-
-    return user; // Devuelve el usuario completo
   }
 }

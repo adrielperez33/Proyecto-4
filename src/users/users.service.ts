@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit } from '@nestjs/common'; // OnModuleInit para ejecutar código en el arranque
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/Users.entitiy';
@@ -75,19 +80,84 @@ export class UsersService implements OnModuleInit {
   }
 
   // Método para eliminar un usuario
-  async deleteUser(id: string): Promise<string | null> {
+  async deleteUser(id: string): Promise<string> {
+    // Verificar si el usuario existe en la base de datos
     const existingUser = await this.userRepository.findOne({ where: { id } });
-    if (!existingUser) return null;
 
+    if (!existingUser) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // Eliminar las órdenes asociadas al usuario
+    await this.orderRepository.delete({ user: { id } });
+
+    // Eliminar al usuario
+    const idEliminado = existingUser.name;
     await this.userRepository.remove(existingUser);
-    return existingUser.id;
+
+    // Retornar el ID del usuario eliminado y un mensaje de confirmación
+    return `Usuario ${idEliminado} eliminado correctamente`;
   }
 
   // Método para encontrar un usuario por su email
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { email } }); // Busca al usuario por email
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password'], // Seleccionamos solo los campos necesarios
+    });
   }
 
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      address,
+      phone,
+      country,
+      city,
+    } = createUserDto;
+
+    // Verificar si el correo electrónico ya está registrado
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('El correo electrónico ya está en uso');
+    }
+
+    // Validar que la contraseña y la confirmación de la contraseña coincidan
+    if (password !== confirmPassword) {
+      throw new BadRequestException('Las contraseñas no coinciden');
+    }
+
+    // Hashear la contraseña antes de guardarla
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear el usuario solo si el correo no está en uso
+    const user = this.userRepository.create({
+      name,
+      email,
+      password: hashedPassword, // Aquí guardamos la contraseña hasheada
+      address,
+      phone,
+      country,
+      city,
+    });
+
+    try {
+      // Guardar el usuario en la base de datos
+      await this.userRepository.save(user);
+
+      return user; // Retornar el usuario completo, con la contraseña hasheada
+    } catch (error) {
+      throw new BadRequestException(
+        'Error al registrar el usuario: ' + error.message,
+      );
+    }
+  }
   // Seeder para precargar usuarios
   async seedUsers() {
     const existingUsers = await this.userRepository.count();

@@ -24,9 +24,9 @@ import { User } from './entities/Users.entitiy';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [Product, Category, Order, OrderDetail, User],
-        // dropSchema: true,
-        synchronize: true,
-        migrationsRun: true, // Ejecuta las migraciones automáticamente al iniciar la aplicación
+        synchronize: true, // Desactiva synchronize temporalmente
+        dropSchema: false,
+        migrationsRun: true, // Ejecuta migraciones automáticamente
         migrations: [__dirname + '/../migrations/*{.ts,.js}'],
         cli: {
           migrationsDir: 'src/migrations',

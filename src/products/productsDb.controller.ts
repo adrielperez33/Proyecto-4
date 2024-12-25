@@ -1,10 +1,24 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Body,
+  Put,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductService } from './productsDb. services';
+import { AuthGuard } from 'src/auth/AuthGuard';
+import { Product } from '../entities/Products.entity'; // Asegúrate de tener la entidad Product definida
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  // Seeder para precargar productos
   @Get('seeder')
   async preloadProducts(): Promise<void> {
     const products = [
@@ -96,8 +110,50 @@ export class ProductController {
     ];
     await this.productService.addProducts(products);
   }
+
+  // Obtener productos con paginación
+  @HttpCode(200)
   @Get()
-  getProducts() {
-    return this.productService.getProducts();
+  async getProducts(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '5',
+  ): Promise<Product[]> {
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    return this.productService.getProducts(pageNumber, limitNumber);
+  }
+
+  // Obtener un producto por su ID
+  @HttpCode(200)
+  @Get(':id')
+  getProductById(@Param('id') id: string): Promise<Product | undefined> {
+    return this.productService.getProductById(id); // Se pasa el id como string
+  }
+
+  // Agregar nuevo producto
+  @HttpCode(201)
+  @UseGuards(AuthGuard)
+  @Post()
+  postProduct(@Body() product: Omit<Product, 'id'>): Promise<Product> {
+    return this.productService.addProduct(product);
+  }
+
+  // Actualizar un producto
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  @Put(':id')
+  async updateProduct(
+    @Param('id') id: string, // 'id' será un string
+    @Body() product: Partial<Product>, // El cuerpo es un objeto que contiene las propiedades del producto que se quieren actualizar
+  ): Promise<Product> {
+    return this.productService.updateProduct(id, product); // Pasamos el id y el producto al servicio
+  }
+
+  // Eliminar un producto
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  deleteProduct(@Param('id') id: string): Promise<void> {
+    return this.productService.deleteProduct(id); // Se pasa el id como string
   }
 }

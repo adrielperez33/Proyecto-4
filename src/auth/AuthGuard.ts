@@ -4,10 +4,13 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+  constructor(private readonly jwtService: JwtService) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -20,21 +23,24 @@ export class AuthGuard implements CanActivate {
       );
     }
 
-    // Verifica que el header tenga la estructura Basic <email>:<password>
-    const [type, credentials] = authorization.split(' ');
+    const [type, token] = authorization.split(' ');
 
-    if (type !== 'Basic' || !credentials) {
+    if (type !== 'Bearer' || !token) {
       throw new UnauthorizedException(
         'Estructura del encabezado de autorización inválida',
       );
     }
 
-    const [email, password] = credentials.split(':');
+    try {
+      const decoded = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
 
-    if (!email || !password) {
-      throw new UnauthorizedException('Email o contraseña incorrectos');
+      // Adjuntar información de expiración del token
+      request.user = decoded;
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('Token inválido o expirado');
     }
-
-    return true;
   }
 }

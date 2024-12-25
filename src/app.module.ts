@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { ConfigModule } from '@nestjs/config';
 import { OrderModule } from './orders/order.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -23,6 +24,11 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     OrderModule,
     CategoryModule,
     CloudinaryModule,
+    JwtModule.register({
+      global: true,
+      signOptions: { expiresIn: '1h' },
+      secret: process.env.JWT_SECRET,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

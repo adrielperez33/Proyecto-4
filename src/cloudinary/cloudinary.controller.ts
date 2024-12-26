@@ -10,7 +10,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 import { ProductService } from '../products/productsDb. services'; // Cambia la importación según sea necesario
-import { AuthGuard } from 'src/auth/AuthGuard';
+import { AuthGuard } from 'src/auth/guards/AuthGuard';
 
 @Controller('cloudinary')
 export class CloudinaryController {

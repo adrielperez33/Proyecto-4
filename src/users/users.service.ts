@@ -27,27 +27,23 @@ export class UsersService implements OnModuleInit {
 
   // Método para obtener usuarios con paginación
   async getUsers(page: number, limit: number): Promise<User[]> {
-    return this.userRepository.find({
-      skip: (page - 1) * limit,
+    const offset = (page - 1) * limit;
+    const users = await this.userRepository.find({
+      skip: offset,
       take: limit,
     });
+    return users;
   }
 
   // Método para obtener un usuario por su ID
-  async getUsersId(id: string): Promise<Partial<User>> {
+  async getUsersId(id: string): Promise<User | undefined> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: [
-        'orders',
-        'orders.orderDetails',
-        'orders.orderDetails.products',
-      ], // Asegúrate de cargar 'orderDetails' y 'products'
+      relations: ['orders', 'orders.orderDetails'],
     });
-
     if (!user) {
-      return undefined;
+      throw new NotFoundException('User not found');
     }
-
     return user;
   }
 
@@ -57,6 +53,7 @@ export class UsersService implements OnModuleInit {
     const newUser = this.userRepository.create({
       ...user,
       password: hashedPassword,
+      admin: false,
     });
     const result = await this.userRepository.save(newUser);
     return result.id;
@@ -65,18 +62,15 @@ export class UsersService implements OnModuleInit {
   // Método para actualizar un usuario existente
   async putUser(
     id: string,
-    user: Partial<CreateUserDto>, // Asegúrate de que es un Partial del DTO
+    updatedUser: Partial<CreateUserDto>,
   ): Promise<string | null> {
-    const existingUser = await this.userRepository.findOne({ where: { id } });
-    if (!existingUser) return null;
-
-    if (user.password) {
-      user.password = await bcrypt.hash(user.password, 10);
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      return null;
     }
-
-    Object.assign(existingUser, user);
-    await this.userRepository.save(existingUser);
-    return existingUser.id;
+    Object.assign(user, updatedUser);
+    await this.userRepository.save(user);
+    return user.id;
   }
 
   // Método para eliminar un usuario
@@ -99,11 +93,10 @@ export class UsersService implements OnModuleInit {
     return `Usuario ${idEliminado} eliminado correctamente`;
   }
 
-  // Método para encontrar un usuario por su email
   async findByEmail(email: string): Promise<User | undefined> {
     return this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password'], // Seleccionamos solo los campos necesarios
+      select: ['id', 'email', 'password', 'admin'], // Asegúrate de incluir 'password'
     });
   }
 
@@ -117,6 +110,7 @@ export class UsersService implements OnModuleInit {
       phone,
       country,
       city,
+      admin = false, // Establecer por defecto a false si no se pasa
     } = createUserDto;
 
     // Verificar si el correo electrónico ya está registrado
@@ -136,7 +130,7 @@ export class UsersService implements OnModuleInit {
     // Hashear la contraseña antes de guardarla
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear el usuario solo si el correo no está en uso
+    // Asegúrate de que admin esté correctamente configurado
     const user = this.userRepository.create({
       name,
       email,
@@ -145,45 +139,55 @@ export class UsersService implements OnModuleInit {
       phone,
       country,
       city,
+      admin, // Asignar el valor de admin que venga en el DTO o por defecto false
     });
 
     try {
       // Guardar el usuario en la base de datos
       await this.userRepository.save(user);
-
-      return user; // Retornar el usuario completo, con la contraseña hasheada
+      return user; // Retornar el usuario completo
     } catch (error) {
       throw new BadRequestException(
         'Error al registrar el usuario: ' + error.message,
       );
     }
   }
+
+  async findById(id: string): Promise<User | undefined> {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'email', 'admin'], // Selecciona los campos necesarios
+    });
+  }
+
   // Seeder para precargar usuarios
   async seedUsers() {
     const existingUsers = await this.userRepository.count();
-    if (existingUsers > 0) return; // Solo agrega los usuarios si no existen
+    if (existingUsers > 0) return;
 
     const users = [
       {
         name: 'John Doe',
         email: 'john@example.com',
-        password: await bcrypt.hash('hashedpassword', 10), // Asegúrate de usar un hash real en producción
+        password: await bcrypt.hash('hashedpassword', 10),
         phone: 123456789,
         country: 'USA',
         address: '123 Main St',
         city: 'New York',
+        admin: false, // Asegurar que el campo admin sea falso por defecto
       },
       {
         name: 'Jane Smith',
         email: 'jane@example.com',
-        password: await bcrypt.hash('hashedpassword', 10), // Asegúrate de usar un hash real en producción
+        password: await bcrypt.hash('hashedpassword', 10),
         phone: 987654321,
-        country: 'Canada',
+        country: 'USA',
         address: '456 Elm St',
-        city: 'Toronto',
+        city: 'Los Angeles',
+        admin: false, // Asegurar que el campo admin sea falso por defecto
       },
     ];
 
-    await this.userRepository.save(users); // Guarda los usuarios en la base de datos
+    await this.userRepository.save(users);
   }
 }

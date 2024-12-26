@@ -14,18 +14,21 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from '../entities/Users.entitiy';
-import { AuthGuard } from '../auth/AuthGuard';
+import { AuthGuard } from '../auth/guards/AuthGuard';
 import { CreateUserDto } from './CreateUserDto';
 import { UUIDValidationPipe } from '../pipes/uuid-validation.pipe'; // Importamos el Pipe
+import { Roles } from 'src/auth/Decoradores/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @HttpCode(200)
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
-  getUsers(
+  @Roles('admin')
+  async getUsers(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '5',
   ): Promise<User[]> {
@@ -50,7 +53,9 @@ export class UsersController {
       orderDetails: order.orderDetails ? order.orderDetails : null,
     }));
 
-    return { ...user, orders };
+    const { admin, ...userWithoutAdmin } = user;
+
+    return { ...userWithoutAdmin, orders };
   }
 
   // @HttpCode(201)

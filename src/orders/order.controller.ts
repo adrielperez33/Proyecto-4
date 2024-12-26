@@ -10,7 +10,7 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './order.dto';
 import { UUIDValidationPipe } from '../pipes/uuid-validation.pipe'; // Asegúrate de que esta ruta sea correcta
-import { AuthGuard } from 'src/auth/AuthGuard';
+import { AuthGuard } from 'src/auth/guards/AuthGuard';
 
 @Controller('orders')
 export class OrderController {

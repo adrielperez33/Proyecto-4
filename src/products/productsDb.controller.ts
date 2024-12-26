@@ -11,8 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './productsDb. services';
-import { AuthGuard } from 'src/auth/AuthGuard';
+import { AuthGuard } from 'src/auth/guards/AuthGuard';
 import { Product } from '../entities/Products.entity'; // Asegúrate de tener la entidad Product definida
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/Decoradores/roles.decorator';
 
 @Controller('products')
 export class ProductController {
@@ -140,8 +142,9 @@ export class ProductController {
 
   // Actualizar un producto
   @HttpCode(200)
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
+  @Roles('admin')
   async updateProduct(
     @Param('id') id: string, // 'id' será un string
     @Body() product: Partial<Product>, // El cuerpo es un objeto que contiene las propiedades del producto que se quieren actualizar

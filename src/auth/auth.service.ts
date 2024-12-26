@@ -29,6 +29,7 @@ export class AuthService {
     return userWithoutPassword;
   }
 
+  // src/auth/auth.service.ts
   async signIn(
     email: string,
     password: string,
@@ -50,8 +51,12 @@ export class AuthService {
         throw new UnauthorizedException('La contraseña es incorrecta');
       }
 
-      // Crear el payload para el JWT
-      const payload = { username: user.email.split('@')[0], sub: user.id };
+      // Crear el payload para el JWT incluyendo el campo admin
+      const payload = {
+        username: user.email.split('@')[0], // Nombre de usuario
+        sub: user.id, // ID del usuario
+        admin: user.admin, // Agregar el campo admin
+      };
 
       // Firmar el token
       const accessToken = this.jwtService.sign(payload, {

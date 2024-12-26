@@ -5,6 +5,8 @@ import {
   IsEmail,
   Matches,
   IsInt,
+  IsOptional,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -59,4 +61,8 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'La ciudad no puede estar vacía' })
   @MaxLength(50, { message: 'La ciudad no debe exceder los 50 caracteres' })
   city: string;
+
+  @IsOptional()
+  @IsBoolean()
+  admin?: boolean;
 }

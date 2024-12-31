@@ -10,11 +10,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ProductService } from './productsDb. services';
-import { AuthGuard } from 'src/auth/guards/AuthGuard';
+import { ProductService } from './productsDb.services';
+import { AuthGuard } from '../auth/guards/AuthGuard';
 import { Product } from '../entities/Products.entity'; // Asegúrate de tener la entidad Product definida
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/Decoradores/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/Decoradores/roles.decorator';
 
 @Controller('products')
 export class ProductController {

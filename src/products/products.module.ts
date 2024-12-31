@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from '../entities/Products.entity';
-import { ProductService } from './productsDb. services'; // Asegúrate de que esta ruta sea correcta
+import { ProductService } from './productsDb.services'; // Asegúrate de que esta ruta sea correcta
 import { ProductController } from './productsDb.controller'; // Asegúrate de que esta ruta sea correcta
 import { CategoryModule } from 'src/category/category.module';
 import { UsersModule } from 'src/users/users.module';

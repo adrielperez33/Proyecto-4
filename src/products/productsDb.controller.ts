@@ -15,7 +15,10 @@ import { AuthGuard } from '../auth/guards/AuthGuard';
 import { Product } from '../entities/Products.entity'; // Asegúrate de tener la entidad Product definida
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/Decoradores/roles.decorator';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('productos')
+@ApiBearerAuth()
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
@@ -113,7 +116,7 @@ export class ProductController {
     await this.productService.addProducts(products);
   }
 
-  // Obtener productos con paginación
+  @ApiOperation({ summary: 'Obtener productos paginados' })
   @HttpCode(200)
   @Get()
   async getProducts(
@@ -125,14 +128,14 @@ export class ProductController {
     return this.productService.getProducts(pageNumber, limitNumber);
   }
 
-  // Obtener un producto por su ID
+  @ApiOperation({ summary: 'Obtener un producto por ID' })
   @HttpCode(200)
   @Get(':id')
   getProductById(@Param('id') id: string): Promise<Product | undefined> {
     return this.productService.getProductById(id); // Se pasa el id como string
   }
 
-  // Agregar nuevo producto
+  @ApiOperation({ summary: 'Agregar un nuevo producto' })
   @HttpCode(201)
   @UseGuards(AuthGuard)
   @Post()
@@ -140,7 +143,7 @@ export class ProductController {
     return this.productService.addProduct(product);
   }
 
-  // Actualizar un producto
+  @ApiOperation({ summary: 'Actualizar un producto' })
   @HttpCode(200)
   @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
@@ -152,7 +155,7 @@ export class ProductController {
     return this.productService.updateProduct(id, product); // Pasamos el id y el producto al servicio
   }
 
-  // Eliminar un producto
+  @ApiOperation({ summary: 'Eliminar un producto' })
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Delete(':id')

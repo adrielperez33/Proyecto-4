@@ -11,7 +11,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 import { ProductService } from '../products/productsDb.services'; // Cambia la importación según sea necesario
 import { AuthGuard } from 'src/auth/guards/AuthGuard';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('cloudinary')
+@ApiBearerAuth()
 @Controller('cloudinary')
 export class CloudinaryController {
   constructor(
@@ -19,6 +22,7 @@ export class CloudinaryController {
     private readonly productService: ProductService,
   ) {}
 
+  @ApiOperation({ summary: 'Subir imagen a Cloudinary' })
   @Post('uploadImage/:id')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))

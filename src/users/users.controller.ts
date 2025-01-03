@@ -19,11 +19,15 @@ import { CreateUserDto } from './CreateUserDto';
 import { UUIDValidationPipe } from '../pipes/uuid-validation.pipe'; // Importamos el Pipe
 import { Roles } from 'src/auth/Decoradores/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
+  @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @HttpCode(200)
   @UseGuards(AuthGuard, RolesGuard)
   @Get()
@@ -37,6 +41,7 @@ export class UsersController {
     return this.userService.getUsers(pageNumber, limitNumber);
   }
 
+  @ApiOperation({ summary: 'Obtener un usuario por ID' })
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Get(':id')
@@ -65,6 +70,7 @@ export class UsersController {
   //   return { id: newUserId };
   // }
 
+  @ApiOperation({ summary: 'Actualizar un usuario' })
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Put(':id')
@@ -79,6 +85,7 @@ export class UsersController {
     return { id: updatedId };
   }
 
+  @ApiOperation({ summary: 'Eliminar un usuario' })
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Delete(':id')

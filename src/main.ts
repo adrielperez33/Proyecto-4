@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import * as dotenv from 'dotenv';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   dotenv.config();
@@ -54,6 +55,17 @@ async function bootstrap() {
   await app.getHttpAdapter().getInstance().get('/categories/seeder');
   await app.getHttpAdapter().getInstance().get('/products/seeder');
 
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('TecnoPandas API')
+    .setDescription(
+      'API para la tienda TecnoPandas con autenticación JWT y roles',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, document);
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../entities/Products.entity';
 import { Category } from '../entities/Categories.entity';
+import { CreateProductDto } from './CreateProductDto';
 
 @Injectable()
 export class ProductService {
@@ -52,18 +53,21 @@ export class ProductService {
   }
 
   // Add new product
-  async addProduct(product: Omit<Product, 'id'>): Promise<Product> {
+  async addProduct(createProductDto: CreateProductDto): Promise<Product> {
     const category = await this.categoryRepository.findOne({
-      where: { name: String(product.category) }, // Asegurando que 'category' es un string
+      where: { name: createProductDto.category },
     });
-    if (category) {
-      const newProduct = this.productRepository.create({
-        ...product,
-        category: category,
-      });
-      return this.productRepository.save(newProduct);
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
     }
-    throw new NotFoundException('Category not found');
+
+    const newProduct = this.productRepository.create({
+      ...createProductDto,
+      category,
+    });
+
+    return this.productRepository.save(newProduct);
   }
 
   // Update product details

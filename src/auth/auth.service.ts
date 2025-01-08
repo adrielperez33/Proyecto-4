@@ -40,7 +40,7 @@ export class AuthService {
 
       // Si no existe el usuario, lanzamos un error
       if (!user) {
-        throw new UnauthorizedException('El usuario no existe');
+        throw new UnauthorizedException('El usuario no existe o La contraseña es incorrecta');
       }
 
       // Verificar si la contraseña ingresada coincide con la almacenada
@@ -48,7 +48,7 @@ export class AuthService {
 
       // Si la contraseña no coincide, lanzamos un error
       if (!passwordMatch) {
-        throw new UnauthorizedException('La contraseña es incorrecta');
+        throw new UnauthorizedException('El usuario no existe o La contraseña es incorrecta');
       }
 
       // Crear el payload para el JWT incluyendo el campo admin
@@ -66,7 +66,7 @@ export class AuthService {
       return { accessToken };
     } catch (error) {
       // Registrar el error para debugging
-      console.error('Error during user sign in:', error);
+      console.error('Error durante el inicio de sesión del usuario:', error);
 
       // Lanzar una excepción adecuada para los errores internos
       if (error instanceof UnauthorizedException) {

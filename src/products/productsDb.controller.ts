@@ -22,6 +22,7 @@ import { UUIDValidationPipe } from 'src/pipes/uuid-validation.pipe';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/Categories.entity';
 import { Repository } from 'typeorm';
+import { CreateProductDto } from './CreateProductDto';
 
 @ApiTags('productos')
 @ApiBearerAuth()
@@ -159,8 +160,8 @@ export class ProductController {
   @HttpCode(201)
   @UseGuards(AuthGuard)
   @Post()
-  postProduct(@Body() product: Omit<Product, 'id'>): Promise<Product> {
-    return this.productService.addProduct(product);
+  postProduct(@Body() createProductDto: CreateProductDto): Promise<Product> {
+    return this.productService.addProduct(createProductDto);
   }
 
   @ApiOperation({ summary: 'Actualizar un producto' })

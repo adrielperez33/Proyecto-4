@@ -9,6 +9,8 @@ import {
   Delete,
   Query,
   UseGuards,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ProductService } from './productsDb.services';
 import { AuthGuard } from '../auth/guards/AuthGuard';
@@ -16,16 +18,32 @@ import { Product } from '../entities/Products.entity'; // Asegúrate de tener la
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/Decoradores/roles.decorator';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UUIDValidationPipe } from 'src/pipes/uuid-validation.pipe';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from 'src/entities/Categories.entity';
+import { Repository } from 'typeorm';
 
 @ApiTags('productos')
 @ApiBearerAuth()
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly productService: ProductService,
+
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+  ) {}
 
   // Seeder para precargar productos
   @Get('seeder')
   async preloadProducts(): Promise<void> {
+    const categoriesCount = await this.categoryRepository.count();
+    if (categoriesCount === 0) {
+      throw new HttpException(
+        'Debe precargar las categorías antes de ejecutar el seeder de productos.',
+        HttpStatus.BAD_REQUEST, // 400 en vez de 500
+      );
+    }
     const products = [
       {
         name: 'Iphone 15',
@@ -131,7 +149,9 @@ export class ProductController {
   @ApiOperation({ summary: 'Obtener un producto por ID' })
   @HttpCode(200)
   @Get(':id')
-  getProductById(@Param('id') id: string): Promise<Product | undefined> {
+  getProductById(
+    @Param('id', UUIDValidationPipe) id: string,
+  ): Promise<Product | undefined> {
     return this.productService.getProductById(id); // Se pasa el id como string
   }
 
@@ -149,7 +169,7 @@ export class ProductController {
   @Put(':id')
   @Roles('admin')
   async updateProduct(
-    @Param('id') id: string, // 'id' será un string
+    @Param('id', UUIDValidationPipe) id: string, // 'id' será un string
     @Body() product: Partial<Product>, // El cuerpo es un objeto que contiene las propiedades del producto que se quieren actualizar
   ): Promise<Product> {
     return this.productService.updateProduct(id, product); // Pasamos el id y el producto al servicio
@@ -159,7 +179,7 @@ export class ProductController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Delete(':id')
-  deleteProduct(@Param('id') id: string): Promise<void> {
+  deleteProduct(@Param('id', UUIDValidationPipe) id: string): Promise<void> {
     return this.productService.deleteProduct(id); // Se pasa el id como string
   }
 }

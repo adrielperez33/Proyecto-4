@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../users/users.service';
+
 @Injectable()
 export class RolesGuard {
   constructor(
@@ -45,16 +46,27 @@ export class RolesGuard {
         );
       }
 
+      // Verificar si el usuario es admin
       if (!user.admin) {
         throw new HttpException(
           'No tienes permiso para acceder a este recurso',
-          HttpStatus.FORBIDDEN,
+          HttpStatus.FORBIDDEN, // 403 - Permiso denegado
         );
       }
 
       return true;
     } catch (error) {
       console.error('Error al validar token:', error);
+
+      if (error?.response === 'No tienes permiso para acceder a este recurso') {
+        // Si el error fue relacionado con permisos, se lanza el 403
+        throw new HttpException(
+          'No tienes permiso para acceder a este recurso',
+          HttpStatus.FORBIDDEN, // 403 - Permiso denegado
+        );
+      }
+
+      // Si el error fue otro, se lanza el 401 (Token inválido)
       throw new HttpException('Token inválido', HttpStatus.UNAUTHORIZED);
     }
   }

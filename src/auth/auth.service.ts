@@ -18,7 +18,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto): Promise<Omit<User, 'password' | 'admin'>> {
+  async signUp(
+    createUserDto: CreateUserDto,
+  ): Promise<Omit<User, 'password' | 'admin'>> {
     // Llamamos al servicio para crear el usuario
     const user = await this.usersService.createUser(createUserDto);
 

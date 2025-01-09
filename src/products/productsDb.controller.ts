@@ -166,7 +166,7 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: 'Actualizar un producto' })
-  @ApiBody({ type: CreateProductDto, required: false }) 
+  @ApiBody({ type: CreateProductDto, required: false })
   @HttpCode(200)
   @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
@@ -182,7 +182,9 @@ export class ProductController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Delete(':id')
-  deleteProduct(@Param('id', UUIDValidationPipe) id: string): Promise<void> {
-    return this.productService.deleteProduct(id); // Se pasa el id como string
+  deleteProduct(
+    @Param('id', UUIDValidationPipe) id: string,
+  ): Promise<{ message: string; productId: string }> {
+    return this.productService.deleteProduct(id);
   }
 }

@@ -6,6 +6,7 @@ import { OrderDetail } from '../entities/OrderDetail.entity';
 import { Product } from '../entities/Products.entity';
 import { User } from '../entities/Users.entitiy';
 import { CreateOrderDto } from './order.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class OrderService {
@@ -25,7 +26,7 @@ export class OrderService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async addOrder(createOrderDto: CreateOrderDto): Promise<Order> {
+  async addOrder(createOrderDto: CreateOrderDto): Promise<Omit<Order, 'user'>> {
     const { userId, products } = createOrderDto;
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -92,10 +93,33 @@ export class OrderService {
 
       await queryRunner.commitTransaction();
 
-      return this.orderRepository.findOne({
+      // Obtener la orden guardada
+      const savedOrder = await this.orderRepository.findOne({
         where: { id: order.id },
         relations: ['user', 'orderDetails', 'orderDetails.products'],
       });
+
+      // Omitir los campos sensibles del usuario
+      const userWithoutSensitiveData = {
+        id: savedOrder.user.id,
+        name: savedOrder.user.name,
+        email: savedOrder.user.email,
+        phone: savedOrder.user.phone,
+        country: savedOrder.user.country,
+        address: savedOrder.user.address,
+        city: savedOrder.user.city,
+      };
+
+      // Crear el objeto de la orden con los datos omitidos del usuario
+      const orderedOrder = {
+        id: savedOrder.id,
+        total: savedOrder.total,
+        date: savedOrder.date,
+        user: userWithoutSensitiveData, // Usuario con los datos omitidos
+        orderDetails: savedOrder.orderDetails, // Detalles de la orden
+      };
+
+      return orderedOrder;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -104,23 +128,34 @@ export class OrderService {
     }
   }
 
-  async getOrder(orderId: string): Promise<Order> {
+  async getOrder(orderId: string): Promise<Omit<Order, 'user'>> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['orderDetails', 'orderDetails.products', 'user'], // Asegúrate de cargar 'user' también
+      relations: ['orderDetails', 'orderDetails.products', 'user'],
     });
 
     if (!order) {
       throw new NotFoundException('Orden no encontrada');
     }
 
-    // Crear un objeto con el orden que deseas
+    // Crear un objeto con los datos del usuario, omitiendo 'password', 'admin' y 'orders'
+    const userWithoutSensitiveData = {
+      id: order.user.id,
+      name: order.user.name,
+      email: order.user.email,
+      phone: order.user.phone,
+      country: order.user.country,
+      address: order.user.address,
+      city: order.user.city,
+    };
+
+    // Crear el objeto de respuesta final sin la propiedad completa 'user'
     const orderedOrder = {
       id: order.id,
       total: order.total,
       date: order.date,
-      user: order.user, // 'user' primero
-      orderDetails: order.orderDetails, // Luego 'orderDetails'
+      user: userWithoutSensitiveData, // Usuario con los datos omitidos
+      orderDetails: order.orderDetails, // Detalles de la orden
     };
 
     return orderedOrder;

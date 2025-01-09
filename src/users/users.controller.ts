@@ -57,7 +57,7 @@ export class UsersController {
   }> {
     const user = await this.userService.getUsersId(id);
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
     }
 
     // Transformamos las órdenes para incluir solo id y date

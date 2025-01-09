@@ -63,7 +63,7 @@ export class ProductService {
     });
 
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('Categoria no encontrado');
     }
 
     const newProduct = this.productRepository.create({
@@ -83,7 +83,7 @@ export class ProductService {
       where: { id },
     });
     if (!existingProduct) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException('Proucto no encontrado');
     }
 
     // Si el DTO incluye una categoría, hay que buscarla en la base de datos
@@ -93,7 +93,7 @@ export class ProductService {
         where: { name: productDto.category },
       });
       if (!category) {
-        throw new NotFoundException('Category not found');
+        throw new NotFoundException('Categoria no encontrada');
       }
     }
 
@@ -109,39 +109,28 @@ export class ProductService {
   // Delete product
   async deleteProduct(
     id: string,
-  ): Promise<{ message: string; product: { id: string; name: string } }> {
-    // Buscar el producto con sus detalles de orden
+  ): Promise<{ message: string; productId: string }> {
     const existingProduct = await this.productRepository.findOne({
       where: { id },
-      relations: ['orderDetails'], // Relacionamos los detalles de la orden
+      relations: ['orderDetails'],
     });
 
-    // Si no se encuentra el producto, lanzar error
     if (!existingProduct) {
       throw new NotFoundException('Producto no encontrado');
     }
 
-    // Si el producto tiene detalles de órdenes asociadas, no se puede eliminar
     if (
       existingProduct.orderDetails &&
       existingProduct.orderDetails.length > 0
     ) {
       throw new ConflictException(
-        'No se puede eliminar el producto porque tiene órdenes asociadas',
+        'No se puede eliminar el producto con pedidos existentes',
       );
     }
 
-    // Eliminar el producto si no tiene órdenes asociadas
     await this.productRepository.delete(id);
 
-    // Devolver un mensaje de éxito con el id y nombre del producto eliminado
-    return {
-      message: `El producto "${existingProduct.name}" ha sido eliminado correctamente.`,
-      product: {
-        id: existingProduct.id,
-        name: existingProduct.name,
-      },
-    };
+    return { message: 'Producto eliminado exitosamente', productId: id };
   }
 
   async updateProductImage(id: string, imageUrl: string): Promise<Product> {

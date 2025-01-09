@@ -37,7 +37,7 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty({
-    example: 'password123',
+    example: 'Password123',
     description: 'Contraseña del usuario',
   })
   @IsString()
@@ -50,7 +50,7 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({
-    example: 'password123',
+    example: 'Password123',
     description: 'Confirmación de la contraseña del usuario',
   })
   @IsString()
@@ -100,4 +100,11 @@ export class CreateUserDto {
   @MaxLength(20, { message: 'La ciudad no debe exceder los 50 caracteres' })
   city: string;
 
+  @ApiProperty({
+    example: true,
+    description: 'Indica si el usuario tiene permisos de administrador',
+  })
+  @IsBoolean()
+  @IsOptional()
+  admin?: boolean;
 }

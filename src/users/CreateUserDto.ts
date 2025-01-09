@@ -63,11 +63,11 @@ export class CreateUserDto {
   @ApiProperty({
     example: 'Av. Siempre Viva 123',
     description: 'Dirección del usuario',
-    maxLength: 100,
+    maxLength: 80,
   })
   @IsString()
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
-  @MaxLength(100, {
+  @MaxLength(80, {
     message: 'La dirección no debe exceder los 100 caracteres',
   })
   address: string;
@@ -83,28 +83,21 @@ export class CreateUserDto {
   @ApiProperty({
     example: 'México',
     description: 'País del usuario',
-    maxLength: 50,
+    maxLength: 20,
   })
   @IsString()
   @IsNotEmpty({ message: 'El país no puede estar vacío' })
-  @MaxLength(50, { message: 'El país no debe exceder los 50 caracteres' })
+  @MaxLength(20, { message: 'El país no debe exceder los 50 caracteres' })
   country: string;
 
   @ApiProperty({
     example: 'Ciudad de México',
     description: 'Ciudad del usuario',
-    maxLength: 50,
+    maxLength: 20,
   })
   @IsString()
   @IsNotEmpty({ message: 'La ciudad no puede estar vacía' })
-  @MaxLength(50, { message: 'La ciudad no debe exceder los 50 caracteres' })
+  @MaxLength(20, { message: 'La ciudad no debe exceder los 50 caracteres' })
   city: string;
 
-  @ApiProperty({
-    example: true,
-    description: 'Indica si el usuario es administrador',
-  })
-  @IsOptional()
-  @IsBoolean()
-  admin?: boolean;
 }

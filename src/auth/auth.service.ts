@@ -18,15 +18,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+  async signUp(createUserDto: CreateUserDto): Promise<Omit<User, 'password' | 'admin'>> {
     // Llamamos al servicio para crear el usuario
     const user = await this.usersService.createUser(createUserDto);
 
-    // Elimina la propiedad password solo cuando no se desea retornar al cliente
-    const { password, ...userWithoutPassword } = user;
+    // Elimina la propiedad password y admin solo cuando no se desea retornar al cliente
+    const { password, admin, ...userWithoutSensitiveData } = user;
 
-    // Retorna el usuario sin la contraseña
-    return userWithoutPassword;
+    return userWithoutSensitiveData;
   }
 
   // src/auth/auth.service.ts
@@ -40,7 +39,9 @@ export class AuthService {
 
       // Si no existe el usuario, lanzamos un error
       if (!user) {
-        throw new UnauthorizedException('El usuario no existe o La contraseña es incorrecta');
+        throw new UnauthorizedException(
+          'El usuario no existe o La contraseña es incorrecta',
+        );
       }
 
       // Verificar si la contraseña ingresada coincide con la almacenada
@@ -48,7 +49,9 @@ export class AuthService {
 
       // Si la contraseña no coincide, lanzamos un error
       if (!passwordMatch) {
-        throw new UnauthorizedException('El usuario no existe o La contraseña es incorrecta');
+        throw new UnauthorizedException(
+          'El usuario no existe o La contraseña es incorrecta',
+        );
       }
 
       // Crear el payload para el JWT incluyendo el campo admin

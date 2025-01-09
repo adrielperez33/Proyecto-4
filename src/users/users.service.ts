@@ -39,11 +39,13 @@ export class UsersService implements OnModuleInit {
   async getUsersId(id: string): Promise<User | undefined> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['orders', 'orders.orderDetails'],
+      relations: ['orders'], // Ya no necesitamos 'orders.orderDetails'
     });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     return user;
   }
 

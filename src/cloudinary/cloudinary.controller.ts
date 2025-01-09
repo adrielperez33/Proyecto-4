@@ -12,10 +12,11 @@ import { CloudinaryService } from './cloudinary.service';
 import { ProductService } from '../products/productsDb.services'; // Cambia la importación según sea necesario
 import { AuthGuard } from 'src/auth/guards/AuthGuard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UUIDValidationPipe } from 'src/pipes/uuid-validation.pipe';
 
-@ApiTags('cloudinary')
+@ApiTags('files')
 @ApiBearerAuth()
-@Controller('cloudinary')
+@Controller('files')
 export class CloudinaryController {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
@@ -27,7 +28,7 @@ export class CloudinaryController {
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
-    @Param('id') id: string,
+    @Param('id', UUIDValidationPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {

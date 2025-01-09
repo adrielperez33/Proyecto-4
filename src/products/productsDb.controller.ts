@@ -17,7 +17,7 @@ import { AuthGuard } from '../auth/guards/AuthGuard';
 import { Product } from '../entities/Products.entity'; // Asegúrate de tener la entidad Product definida
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/Decoradores/roles.decorator';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UUIDValidationPipe } from 'src/pipes/uuid-validation.pipe';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/Categories.entity';
@@ -36,6 +36,7 @@ export class ProductController {
   ) {}
 
   // Seeder para precargar productos
+  @ApiOperation({ summary: 'Pre-cargar productos' })
   @Get('seeder')
   async preloadProducts(): Promise<void> {
     const categoriesCount = await this.categoryRepository.count();
@@ -165,15 +166,16 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: 'Actualizar un producto' })
+  @ApiBody({ type: CreateProductDto, required: false }) 
   @HttpCode(200)
   @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   @Roles('admin')
   async updateProduct(
-    @Param('id', UUIDValidationPipe) id: string, // 'id' será un string
-    @Body() product: Partial<Product>, // El cuerpo es un objeto que contiene las propiedades del producto que se quieren actualizar
+    @Param('id', UUIDValidationPipe) id: string,
+    @Body() productDto: Partial<CreateProductDto>,
   ): Promise<Product> {
-    return this.productService.updateProduct(id, product); // Pasamos el id y el producto al servicio
+    return this.productService.updateProduct(id, productDto);
   }
 
   @ApiOperation({ summary: 'Eliminar un producto' })

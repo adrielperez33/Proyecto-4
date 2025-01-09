@@ -4,6 +4,11 @@ import { LoggerMiddleware } from './middlewares/logger.middleware';
 import * as dotenv from 'dotenv';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Category } from './entities/Categories.entity';
+import { OrderDetail } from './entities/OrderDetail.entity';
+import { Product } from './entities/Products.entity';
+import { User } from './entities/Users.entitiy';
+import { Order } from './entities/Orders.entitiy';
 
 async function bootstrap() {
   dotenv.config();
@@ -64,7 +69,9 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    extraModels: [Category, OrderDetail, Order, Product, User]
+  });
   SwaggerModule.setup('api', app, document);
   await app.listen(process.env.PORT ?? 3000);
 }

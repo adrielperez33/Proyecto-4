@@ -19,7 +19,7 @@ import { CreateUserDto } from './CreateUserDto';
 import { UUIDValidationPipe } from '../pipes/uuid-validation.pipe'; // Importamos el Pipe
 import { Roles } from 'src/auth/Decoradores/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -45,22 +45,37 @@ export class UsersController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Get(':id')
-  async getUserId(
-    @Param('id', UUIDValidationPipe) id: string,
-  ): Promise<Partial<User> | undefined> {
+  async getUserId(@Param('id', UUIDValidationPipe) id: string): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    phone: number;
+    country: string;
+    address: string;
+    city: string;
+    orders: { id: string; date: string }[];
+  }> {
     const user = await this.userService.getUsersId(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
+    // Transformamos las órdenes para incluir solo id y date
     const orders = user.orders.map((order) => ({
-      ...order,
-      orderDetails: order.orderDetails ? order.orderDetails : null,
+      id: order.id,
+      date: new Date(order.date).toISOString().split('T')[0],
     }));
 
-    const { admin, ...userWithoutAdmin } = user;
-
-    return { ...userWithoutAdmin, orders };
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      country: user.country,
+      address: user.address,
+      city: user.city,
+      orders,
+    };
   }
 
   // @HttpCode(201)
@@ -71,6 +86,7 @@ export class UsersController {
   // }
 
   @ApiOperation({ summary: 'Actualizar un usuario' })
+  @ApiBody({ type: CreateUserDto, required: false })
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @Put(':id')

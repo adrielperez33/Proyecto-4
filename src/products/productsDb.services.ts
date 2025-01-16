@@ -57,13 +57,16 @@ export class ProductService {
   }
 
   // Add new product
-  async addProduct(createProductDto: CreateProductDto): Promise<Product> {
-    const category = await this.categoryRepository.findOne({
+  async addProduct(createProductDto: CreateProductDto): Promise<Product> { 
+    let category = await this.categoryRepository.findOne({
       where: { name: createProductDto.category },
     });
 
     if (!category) {
-      throw new NotFoundException('Categoria no encontrado');
+      const newCategory = this.categoryRepository.create({
+        name: createProductDto.category,
+      });
+      category = await this.categoryRepository.save(newCategory);
     }
 
     const newProduct = this.productRepository.create({
